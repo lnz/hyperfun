@@ -76,7 +76,11 @@ class Prompt(Cmd):
 
     def do_exit(self, inp):
         sys.exit(0)
+
+    def help_exit(self):
+        print('Exit Hyperfun')
     do_EOF = do_exit
+    help_EOF = help_exit
 
     def do_load(self, inp):
         if self.state.hg is not None:
@@ -94,6 +98,20 @@ class Prompt(Cmd):
     def help_load(self):
         print('Load a hypergraph in HyperBench format: load <path>')
 
+    def do_save(self, inp):
+        if self.state.hg is None:
+            print('ERROR: no hypergraph active')
+            return
+        try:
+            s = self.state.hg.toHyperbench()
+            with open(inp, 'w') as f:
+                print(s, file=f)
+        except Exception as e:
+            print('Error', e)
+
+    def help_save(self):
+        print('Save the active hypergraph in HyperBench format: save <path>')
+
     def do_separate(self, inp):
         sep = inp.split()
         new_comps = self.state.separate(sep, False)
@@ -105,11 +123,17 @@ class Prompt(Cmd):
         except Exception as e:
             print('Error:', e)
 
+    def help_separate(self):
+        print('Separate by vertices: separate/sep <list of vertices> ')
+
     def do_special(self, inp):
         sep = inp.split()
         new_comps = self.state.separate(sep, True)
         pprint.pprint(new_comps)
     complete_special = complete_separate
+
+    def help_special(self):
+        print('Separate and add separator as special edge to new componenets.')
 
     def do_comp(self, inp):
         try:
@@ -121,6 +145,9 @@ class Prompt(Cmd):
     def complete_comp(self, text, line, begidx, endidx):
         return self.state.component_completer(text)
 
+    def help_comp(self):
+        print('Switch to <comp> as the active hypergraph: comp <comp>')
+
     def do_pop(self, _inp):
         try:
             now = self.state.pop_comp()
@@ -128,19 +155,33 @@ class Prompt(Cmd):
         except Exception as e:
             print('Error', e)
 
+    def help_pop(self):
+        print('Go back to last hypergraph in history.')
+
     def do_hist(self, _inp):
         pprint.pprint(self.state.history)
+
+    def help_hist(self):
+        print('Show history of components, most recent at end.')
 
     def do_show(self, _inp):
         pprint.pprint(self.state.hg)
 
+    def help_show(self):
+        print('Show active hypergraph.')
+
     def do_state(self, _inp):
-        print(self.state)
+        pprint.pprint(self.state)
+
+    def help_state(self):
+        print('Show current state.')
     # Aliases
     do_sep = do_separate
     complete_sep = complete_separate
+    help_sep = help_separate
     do_spec = do_special
     complete_spec = complete_special
+    help_spec = help_special
 
 
 if __name__ == "__main__":
