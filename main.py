@@ -24,11 +24,12 @@ class State:
         self.current_component = INITIAL_HG_NAME
 
     def separate(self, sep, add_special):
-        if add_special:
-            raise NotImplementedError('WiP')
         components = self.hg.separate(sep)
         newlist = list()
         for C in components:
+            if add_special:
+                C.add_special_edge(set(sep))
+
             name = 'C{:02d}'.format(self.component_counter)
             self.component_counter += 1
 
@@ -104,6 +105,12 @@ class Prompt(Cmd):
         except Exception as e:
             print('Error:', e)
 
+    def do_special(self, inp):
+        sep = inp.split()
+        new_comps = self.state.separate(sep, True)
+        pprint.pprint(new_comps)
+    complete_special = complete_separate
+
     def do_comp(self, inp):
         try:
             now = self.state.switch_to_comp(inp)
@@ -129,6 +136,11 @@ class Prompt(Cmd):
 
     def do_state(self, _inp):
         print(self.state)
+    # Aliases
+    do_sep = do_separate
+    complete_sep = complete_separate
+    do_spec = do_special
+    complete_spec = complete_special
 
 
 if __name__ == "__main__":

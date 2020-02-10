@@ -72,9 +72,21 @@ class HyperGraph(object):
         return hg
 
     def add_edge(self, edge, name):
+        assert(type(edge) == set)
         self.edge_dict[name] = edge
         self.V.update(edge)
         self.E.append(edge)
+
+    def add_special_edge(self, sp):
+        SPECIAL_NAME = 'Special'
+        # find a name first
+        sp_name = None
+        for i in itertools.count():
+            candidate = SPECIAL_NAME + str(i)
+            if candidate not in self.edge_dict:
+                sp_name = candidate
+                break
+        self.add_edge(sp, sp_name)
 
     def remove_edge(self, name):
         e = self.edge_dict[name]
