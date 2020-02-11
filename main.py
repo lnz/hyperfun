@@ -203,6 +203,12 @@ class Prompt(Cmd):
     def help_find(self):
         print('Highlight vertices in active hypergraph: find <list of vertices>')
 
+    def do_reset(self, _inp):
+        self.state = State()
+
+    def help_reset(self):
+        print('Resets all state!')
+
     def do_state(self, _inp):
         pprint.pprint(self.state)
 
