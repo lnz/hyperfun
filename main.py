@@ -34,7 +34,7 @@ class State:
             self.component_counter += 1
 
             self.components[name] = C
-            newlist.append((name, repr(C)))
+            newlist.append((name, C))
         return newlist
 
     def switch_to_comp(self, component_name, add_to_hist=True):
@@ -73,6 +73,27 @@ class Prompt(Cmd):
     prompt = '福 '
     intro = 'Type ? for help'
     state = State()
+
+    def _output_new_comps(self, components,
+                          old_edge_num=None, special=False):
+        """
+        Outputs list of pairs (component_name, component_hg).
+        If old_edge_num is set, output 1/2 - balancedness with respect to this number of edge for full graph.
+        If special is True, correct for newly added special edges in balancedness computation.
+        """
+        balanced = True
+        for cn, C in components:
+            print('{}:'.format(cn))
+            print(C)
+
+            # balanced checks
+            C_sz = len(C.E)
+            if special:  # newly added edge doesn't count
+                C_sz = C_sz - 1
+            if old_edge_num is not None and C_sz > old_edge_num / 2:
+                balanced = False
+        if old_edge_num is not None:
+            print('Balanced:', balanced)
 
     def do_exit(self, inp):
         sys.exit(0)
@@ -115,7 +136,7 @@ class Prompt(Cmd):
     def do_separate(self, inp):
         sep = inp.split()
         new_comps = self.state.separate(sep, False)
-        pprint.pprint(new_comps)
+        self._output_new_comps(new_comps, len(self.state.hg.E))
 
     def complete_separate(self, text, line, begidx, endidx):
         try:
@@ -129,7 +150,8 @@ class Prompt(Cmd):
     def do_special(self, inp):
         sep = inp.split()
         new_comps = self.state.separate(sep, True)
-        pprint.pprint(new_comps)
+        self._output_new_comps(new_comps, old_edge_num=len(self.state.hg.E),
+                               special=True)
     complete_special = complete_separate
 
     def help_special(self):
