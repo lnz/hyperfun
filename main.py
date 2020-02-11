@@ -18,6 +18,9 @@ class State:
         self.component_counter = 1
         self.history = []  # maybe change to real stack
 
+    def ready(self):
+        return self.hg is not None
+
     def load_initial(self, path):
         hg = HyperGraph.fromHyperbench(path)
         self.hg = hg
@@ -38,6 +41,14 @@ class State:
             self.components[name] = C
             newlist.append((name, C))
         return newlist
+
+    def introduce_join(self, x, y):
+        newhg = self.hg.join_copy(x, y)
+        new_name = '{}_{}={}'.format(self.current_component, x, y)
+        if new_name in self.components:
+            raise RuntimeError('This join already exists in state')
+        self.components[new_name] = newhg
+        return new_name, newhg
 
     def switch_to_comp(self, component_name, add_to_hist=True):
         if component_name == self.current_component:
@@ -247,6 +258,32 @@ class Prompt(Cmd):
 
     def help_find_edge(self):
         print('Highlight all vertices incident to given edges: find_edge <list of edges>')
+
+    def do_join(self, inp):
+        jv = inp.split()
+        if len(jv) > 2:
+            print('WARNING: takes exactly 2 attributes')
+            return
+        if not self.state.ready():
+            print('WARNING: not ready')
+            return
+        try:
+            name, hg = self.state.introduce_join(jv[0], jv[1])
+            print(name)
+            print(hg)
+        except Exception as e:
+            print('ERROR', e)
+
+    complete_join = _complete_vertices
+
+    def help_join(self):
+        print(
+            "Joins two vertices of the hypergraph into one.",
+            "  print('join <x> <y>')",
+            "Vertex <y> becomes <x> in all edges. May introduce",
+            "duplicate edges that are not automatically removed.",
+            sep='\n'
+        )
 
     def do_reset(self, _inp):
         self.state = State()

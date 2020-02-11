@@ -21,6 +21,8 @@ class HyperGraph(object):
 
     def join_copy(self, x, y):
         """Copy of self with vertices x and y joined"""
+        if x not in self.V or y not in self.V:
+            raise ValueError('Join vertices need to be in hypergraph')
         h = HyperGraph()
         for en, e in self.edge_dict.items():
             e2 = e.copy()
