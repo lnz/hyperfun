@@ -32,7 +32,7 @@ class HyperGraph(object):
 
     def toHyperbench(self):
         s = []
-        for en, e in self.edge_dict.items():
+        for en, e in sorted(self.edge_dict.items()):
             s.append('{}({}),'.format(en, ','.join(e)))
         return '\n'.join(s)
 
@@ -120,7 +120,7 @@ class HyperGraph(object):
         vertex2int = {v: str(i) for i, v in enumerate(self.V, start=1)}
         buf.append('p htd {} {}'.format(len(self.V),
                                         len(self.E)))
-        for i, ei in enumerate(self.edge_dict.items(), start=1):
+        for i, ei in enumerate(sorted(self.edge_dict.items()), start=1):
             en, e = ei
             edgestr = ' '.join(map(lambda v: vertex2int[v], e))
             line = '{} {}'.format(i, edgestr)
@@ -152,6 +152,14 @@ class HyperGraph(object):
         comps = [self.separation_subg(U, sep)
                  for U in comp_vertices]
         return comps
+
+    def toVisualSC(self):
+        vertex2int = {v: str(i) for i, v in enumerate(self.V, start=1)}
+        edges = map(lambda e: map(lambda v: vertex2int[v], e), self.E)
+        buf = []
+        for e in edges:
+            buf.append('{'+', '.join(e) + '}')
+        return ' '.join(buf)
 
     def fancy_repr(self, hl=[]):
         edge_style = colorama.Fore.RED + colorama.Style.NORMAL

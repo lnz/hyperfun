@@ -141,18 +141,34 @@ class Prompt(Cmd):
         print('Load a hypergraph in HyperBench format: load <path>')
 
     def do_save(self, inp):
+        params = inp.split()
+        if len(params) < 1 or len(params) > 2:
+            print('WARNING: invalid usage, see help')
+            return
+        path = params[0]
+        fmt = params[1] if len(params) > 1 else 'hyperbench'
+        fmt = fmt.lower()
+
         if self.state.hg is None:
-            print('ERROR: no hypergraph active')
+            print('WARNING: no hypergraph active')
             return
         try:
-            s = self.state.hg.toHyperbench()
-            with open(inp, 'w') as f:
+            if fmt == 'hyperbench':
+                s = self.state.hg.toHyperbench()
+            elif fmt == 'sc':
+                s = self.state.hg.toVisualSC()
+            elif fmt == 'pace':
+                s = self.state.hg.toPACE()
+            else:
+                print('WARNING: invalid format chosen, see help')
+                return
+            with open(path, 'w') as f:
                 print(s, file=f)
         except Exception as e:
             print('Error', e)
 
     def help_save(self):
-        print('Save the active hypergraph in HyperBench format: save <path>')
+        print('Save the active hypergraph in chosen format (hyperbench (default), sc): save <path> [<format>]')
 
     def do_separate(self, inp):
         sep = inp.split()
