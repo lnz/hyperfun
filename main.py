@@ -24,11 +24,12 @@ class State:
         self.current_component = INITIAL_HG_NAME
 
     def separate(self, sep, add_special):
+        sep = set(sep)
         components = self.hg.separate(sep)
         newlist = list()
         for C in components:
             if add_special:
-                C.add_special_edge(set(sep))
+                C.add_special_edge(sep)
 
             name = 'C{:02d}'.format(self.component_counter)
             self.component_counter += 1

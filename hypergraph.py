@@ -141,12 +141,21 @@ class HyperGraph(object):
             buf.append('s ' + edgestr)
         return '\n'.join(buf)
 
+    def separation_subg(self, U, sep):
+        C = HyperGraph()
+        cover = U | sep
+        for en, e in self.edge_dict.items():
+            if e.issubset(cover):
+                C.add_edge(e, en)
+        return C
+
     def separate(self, sep):
         """Returns list of components"""
+        assert(type(sep) == set)
         primal = self.primal_nx()
         primal.remove_nodes_from(sep)
         comp_vertices = nx.connected_components(primal)
-        comps = [self.vertex_induced_subg(U)
+        comps = [self.separation_subg(U, sep)
                  for U in comp_vertices]
         return comps
 
