@@ -57,6 +57,8 @@ class State:
                                    add_to_hist=False)
 
     def vertex_complete(self, start):
+        if self.hg is None:
+            return []
         return [v for v in self.hg.V if v.startswith(start)]
 
     def component_completer(self, start):
@@ -74,6 +76,12 @@ class Prompt(Cmd):
     prompt = '福 '
     intro = 'Type ? for help'
     state = State()
+
+    def complete_vertices(self, text, line, begidx, endidx):
+        try:
+            return self.state.vertex_complete(text)
+        except Exception as e:
+            print('Error:', e)
 
     def _output_new_comps(self, components,
                           old_edge_num=None, special=False):
@@ -138,12 +146,7 @@ class Prompt(Cmd):
         sep = inp.split()
         new_comps = self.state.separate(sep, False)
         self._output_new_comps(new_comps, len(self.state.hg.E))
-
-    def complete_separate(self, text, line, begidx, endidx):
-        try:
-            return self.state.vertex_complete(text)
-        except Exception as e:
-            print('Error:', e)
+    complete_separate = complete_vertices
 
     def help_separate(self):
         print('Separate by vertices: separate/sep <list of vertices> ')
@@ -193,14 +196,15 @@ class Prompt(Cmd):
     def help_show(self):
         print('Show active hypergraph.')
 
-    def do_find(self, inp):
+    def do_findv(self, inp):
         if self.state.hg is None:
             print('No active hypergraph!')
             return
         hl_list = inp.split()
         print(self.state.hg.fancy_repr(hl=hl_list))
+    complete_findv = complete_vertices
 
-    def help_find(self):
+    def help_findv(self):
         print('Highlight vertices in active hypergraph: find <list of vertices>')
 
     def do_reset(self, _inp):
@@ -216,10 +220,10 @@ class Prompt(Cmd):
         print('Show current state.')
     # Aliases
     do_sep = do_separate
-    complete_sep = complete_separate
+    complete_sep = complete_vertices
     help_sep = help_separate
     do_spec = do_special
-    complete_spec = complete_special
+    complete_spec = complete_vertices
     help_spec = help_special
 
 
