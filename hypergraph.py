@@ -2,15 +2,9 @@ import networkx as nx
 import re
 import pprint
 import itertools
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-
+import colorama
+from termcolor import colored
+colorama.init()
 
 
 class HyperGraph(object):
@@ -159,5 +153,23 @@ class HyperGraph(object):
                  for U in comp_vertices]
         return comps
 
+    def fancy_repr(self, hl=[]):
+        edge_style = colorama.Fore.RED + colorama.Style.NORMAL
+        vertex_style = colorama.Fore.YELLOW + colorama.Style.NORMAL
+        hl_style = colorama.Fore.WHITE + colorama.Back.GREEN + colorama.Style.BRIGHT
+        _reset = colorama.Style.RESET_ALL
+
+        def color_vertex(v):
+            if v in hl:
+                return hl_style + v + _reset
+            else:
+                return vertex_style + v + _reset
+        s = ''
+        for en, e in sorted(self.edge_dict.items()):
+            s += edge_style + en + _reset + '('
+            s += ','.join(map(color_vertex, e))
+            s += ')\n'
+        return s
+
     def __repr__(self):
-        return bcolors.WARNING +  'HG: {}'.format(pprint.pformat(self.edge_dict))+ bcolors.ENDC
+        return self.fancy_repr()

@@ -193,6 +193,16 @@ class Prompt(Cmd):
     def help_show(self):
         print('Show active hypergraph.')
 
+    def do_find(self, inp):
+        if self.state.hg is None:
+            print('No active hypergraph!')
+            return
+        hl_list = inp.split()
+        print(self.state.hg.fancy_repr(hl=hl_list))
+
+    def help_find(self):
+        print('Highlight vertices in active hypergraph: find <list of vertices>')
+
     def do_state(self, _inp):
         pprint.pprint(self.state)
 
