@@ -1,5 +1,6 @@
 from cmd import Cmd
 from hypergraph import HyperGraph
+from functools import reduce
 import sys
 import glob
 import pprint
@@ -61,6 +62,11 @@ class State:
             return []
         return [v for v in self.hg.V if v.startswith(start)]
 
+    def edge_complete(self, start):
+        if self.hg is None:
+            return []
+        return [en for en in self.hg.edge_dict.keys() if en.startswith(start)]
+
     def component_completer(self, start):
         component_names = self.components.keys()
         return [n for n in component_names
@@ -77,9 +83,15 @@ class Prompt(Cmd):
     intro = 'Type ? for help'
     state = State()
 
-    def complete_vertices(self, text, line, begidx, endidx):
+    def _complete_vertices(self, text, line, begidx, endidx):
         try:
             return self.state.vertex_complete(text)
+        except Exception as e:
+            print('Error:', e)
+
+    def _complete_edge(self, text, line, begidx, endidx):
+        try:
+            return self.state.edge_complete(text)
         except Exception as e:
             print('Error:', e)
 
@@ -146,7 +158,7 @@ class Prompt(Cmd):
         sep = inp.split()
         new_comps = self.state.separate(sep, False)
         self._output_new_comps(new_comps, len(self.state.hg.E))
-    complete_separate = complete_vertices
+    complete_separate = _complete_vertices
 
     def help_separate(self):
         print('Separate by vertices: separate/sep <list of vertices> ')
@@ -202,10 +214,23 @@ class Prompt(Cmd):
             return
         hl_list = inp.split()
         print(self.state.hg.fancy_repr(hl=hl_list))
-    complete_findv = complete_vertices
+    complete_findv = _complete_vertices
 
     def help_findv(self):
-        print('Highlight vertices in active hypergraph: find <list of vertices>')
+        print('Highlight vertices in active hypergraph: findv <list of vertices>')
+
+    def do_find_edge(self, inp):
+        if self.state.hg is None:
+            print('No active hypergraph!')
+            return
+        edge_names = inp.split()
+        edges = [self.state.hg.edge_dict[en] for en in edge_names]
+        hl_list = reduce(lambda a, b: a | b, edges)  # union over all edges
+        print(self.state.hg.fancy_repr(hl=hl_list))
+    complete_find_edge = _complete_edge
+
+    def help_find_edge(self):
+        print('Highlight all vertices incident to given edges: find_edge <list of edges>')
 
     def do_reset(self, _inp):
         self.state = State()
@@ -220,10 +245,10 @@ class Prompt(Cmd):
         print('Show current state.')
     # Aliases
     do_sep = do_separate
-    complete_sep = complete_vertices
+    complete_sep = _complete_vertices
     help_sep = help_separate
     do_spec = do_special
-    complete_spec = complete_vertices
+    complete_spec = _complete_vertices
     help_spec = help_special
 
 
