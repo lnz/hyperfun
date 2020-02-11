@@ -141,7 +141,7 @@ class HyperGraph(object):
         C = HyperGraph()
         cover = U | sep
         for en, e in self.edge_dict.items():
-            if e.issubset(cover):
+            if e.issubset(cover) and not e.issubset(sep):
                 C.add_edge(e, en)
         return C
 
