@@ -4,6 +4,8 @@ from functools import reduce
 import sys
 import glob
 import pprint
+import networkx as nx
+import coolname
 import readline
 readline.set_completer_delims(' \t\n')  # for proper filename completion
 
@@ -41,6 +43,22 @@ class State:
             self.components[name] = C
             newlist.append((name, C))
         return newlist
+
+    def edge_subg(self, edge_names):
+        def gen_name():
+            return '{}-{}'.format(self.current_component,
+                                  coolname.generate()[0])
+        newhg = self.hg.edge_subg(edge_names)
+        new_name = gen_name()
+        while new_name in self.components:
+            new_name = gen_name()
+        self.components[new_name] = newhg
+
+        # refactor this into general componenet adding method
+        primal = newhg.primal_nx()
+        if nx.number_connected_components(primal) > 1:
+            print('WARNING: {} is not connected'.format(new_name))
+        return new_name, newhg
 
     def introduce_join(self, x, y):
         newhg = self.hg.join_copy(x, y)
@@ -259,6 +277,27 @@ class Prompt(Cmd):
     def help_find_edge(self):
         print('Highlight all vertices incident to given edges: find_edge <list of edges>')
 
+    def do_edge_subgraph(self, inp):
+        if self.state.hg is None:
+            print('No active hypergraph')
+            return
+        edge_names = inp.split()
+        try:
+            name, hg = self.state.edge_subg(edge_names)
+            print(name)
+            print(hg)
+        except Exception as e:
+            print('ERROR', e)
+    complete_edge_subgraph = _complete_edge
+
+    def help_edge_subgraph(self):
+        print(
+            "Creates subgraph that includes only the given edges.",
+            "    edge_subgraph <list of edges>",
+            "May fail if invalid edges are given.",
+            sep='\n'
+        )
+
     def do_join(self, inp):
         jv = inp.split()
         if len(jv) > 2:
@@ -279,7 +318,7 @@ class Prompt(Cmd):
     def help_join(self):
         print(
             "Joins two vertices of the hypergraph into one.",
-            "  print('join <x> <y>')",
+            "    join <x> <y>",
             "Vertex <y> becomes <x> in all edges. May introduce",
             "duplicate edges that are not automatically removed.",
             sep='\n'

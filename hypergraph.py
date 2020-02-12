@@ -48,6 +48,14 @@ class HyperGraph(object):
                 h.add_edge(e2, name=en)
         return h
 
+    def edge_subg(self, edge_names):
+        h = HyperGraph()
+        for en in edge_names:
+            if en not in self.edge_dict:
+                raise ValueError('Edge >{}< not present in hypergraph'.format(en))
+            h.add_edge(self.edge_dict[en].copy(), en)
+        return h
+
     def fromHyperbench(fname):
         EDGE_RE = re.compile('\s*([\w:]+)\s?\(([^\)]*)\)')
         def split_to_edge_statements(s):
