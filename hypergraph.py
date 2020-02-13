@@ -13,6 +13,27 @@ class HyperGraph(object):
         self.E = list()
         self.edge_dict = dict()
 
+    def grid(n, m):
+        h = HyperGraph()
+        hc, vc = 0, 0
+        for col in range(m-1):
+            for row in range(n):
+                vi = '{}.{}'.format(row, col)
+                vright = '{}.{}'.format(row, col+1)
+                horz_name = 'H{}'.format(hc)
+                hc = hc+1
+                h.add_edge(set([vi, vright]),
+                           horz_name)
+        for col in range(m):
+            for row in range(n-1):
+                vi = '{}.{}'.format(row, col)
+                vdown = '{}.{}'.format(row+1, col)
+                vert_name = 'V{}'.format(vc)
+                vc = vc+1
+                h.add_edge(set([vi, vdown]),
+                           vert_name)
+        return h
+
     def copy(self):
         h = HyperGraph()
         for en, e in self.edge_dict.items():

@@ -23,6 +23,21 @@ class State:
     def ready(self):
         return self.hg is not None
 
+    def _cool_new_name(self):
+        def gen_name():
+            return '{}-{}'.format(self.current_component,
+                                  coolname.generate()[0])
+        new_name = gen_name()
+        while new_name in self.components:
+            new_name = gen_name()
+        return new_name
+
+    def make_grid(self, n, m):
+        hg = HyperGraph.grid(n, m)
+        self.hg = hg
+        self.components[INITIAL_HG_NAME] = hg
+        self.current_component = INITIAL_HG_NAME
+
     def load_initial(self, path):
         hg = HyperGraph.fromHyperbench(path)
         self.hg = hg
@@ -44,14 +59,17 @@ class State:
             newlist.append((name, C))
         return newlist
 
+    def vertex_induced_subg(self, U, complement=False):
+        if complement:
+            U = set(self.hg.V) - U
+        nhg = self.hg.vertex_induced_subg(U)
+        new_name = self._cool_new_name()
+        self.components[new_name] = nhg
+        return new_name, nhg
+
     def edge_subg(self, edge_names):
-        def gen_name():
-            return '{}-{}'.format(self.current_component,
-                                  coolname.generate()[0])
         newhg = self.hg.edge_subg(edge_names)
-        new_name = gen_name()
-        while new_name in self.components:
-            new_name = gen_name()
+        new_name = self._cool_new_name()
         self.components[new_name] = newhg
 
         # refactor this into general componenet adding method
@@ -152,6 +170,25 @@ class Prompt(Cmd):
         print('Exit Hyperfun')
     do_EOF = do_exit
     help_EOF = help_exit
+
+    def do_grid(self, inp):
+        dim = inp.split()
+        if len(dim) != 2:
+            print('WARNING: dimensions given wrong')
+            return
+        if self.state.hg is not None:
+            print('WARNING: already have hypergraph, ignoring until "reset"')
+            return
+        try:
+            dim = list(map(int, dim))
+            self.state.make_grid(dim[0], dim[1])
+        except Exception as e:
+            print('Error', e)
+
+    def help_grid(self, inp):
+        print('Create a <n> x <m> grid graph as the initial hyperraph.',
+              '    grid <n> <m>',
+              sep='\n')
 
     def do_load(self, inp):
         if self.state.hg is not None:
@@ -323,6 +360,11 @@ class Prompt(Cmd):
             "duplicate edges that are not automatically removed.",
             sep='\n'
         )
+
+    def do_complement(self, inp):
+        U = set(inp.split())
+        r = self.state.vertex_induced_subg(U, complement=True)
+        self._output_new_comps([r])
 
     def do_reset(self, _inp):
         self.state = State()
