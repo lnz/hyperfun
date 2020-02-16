@@ -1,5 +1,5 @@
 from cmd import Cmd
-from hypergraph import HyperGraph
+from hyperfun.hypergraph import HyperGraph
 from functools import reduce
 import sys
 import glob

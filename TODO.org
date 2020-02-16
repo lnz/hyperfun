@@ -1,9 +1,0 @@
-* Hypergraph Features
-** Search for balanced separators
-** Checking seps for balancedness
-** Add special edge on separate
-* UI Features
-** Colored output (vertex/edge color distinction)
-* Proper packaging
-** Should follow some kind of package format
-* Documentation
