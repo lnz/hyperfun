@@ -130,6 +130,19 @@ class Prompt(Cmd):
     intro = 'Type ? for help'
     state = State()
 
+    def __init__(self):
+        super(Prompt, self).__init__()
+
+        if len(sys.argv) == 2:
+            path = sys.argv[1]
+            try:
+                self.do_load(path)
+            except Exception as e:
+                print('failed to load parameter hypergraph:', e)
+            print('Loaded >{}<'.format(path))
+        elif len(sys.argv) > 2:
+            print('WARNING: Use at most one command line argument')
+
     def _complete_vertices(self, text, line, begidx, endidx):
         try:
             return self.state.vertex_complete(text)
@@ -196,6 +209,7 @@ class Prompt(Cmd):
             return
         try:
             self.state.load_initial(inp)
+            self.do_show('')
         except Exception as e:
             print('Error loading file:', e)
 
@@ -285,7 +299,8 @@ class Prompt(Cmd):
         print('Show history of components, most recent at end.')
 
     def do_show(self, _inp):
-        pprint.pprint(self.state.hg)
+        print(self.state.current_component+':')
+        print(self.state.hg)
 
     def help_show(self):
         print('Show active hypergraph.')
