@@ -67,6 +67,12 @@ class State:
         self.components[new_name] = nhg
         return new_name, nhg
 
+    def bridge_subg(self, C):
+        nhg = self.hg.bridge_subg(C)
+        new_name = self._cool_new_name()
+        self.components[new_name] = nhg
+        return new_name, nhg
+
     def edge_subg(self, edge_names):
         newhg = self.hg.edge_subg(edge_names)
         new_name = self._cool_new_name()
@@ -384,6 +390,23 @@ class Prompt(Cmd):
         U = set(Prompt._inp_list_split(inp))
         r = self.state.vertex_induced_subg(U, complement=True)
         self._output_new_comps([r])
+
+    def do_bridge_subg(self, inp):
+        C = set(Prompt._inp_list_split(inp))
+        r = self.state.bridge_subg(C)
+        self._output_new_comps([r])
+    complete_bridge_subg = _complete_vertices
+
+    def help_bridge_subg(self):
+        print(
+            'Create subgraph from the vertices given as arguments + the bridge sets as special edges.',
+            '    bridge_subgh <list of vertices>',
+            'Bridge sets consist of all the outside part of edges going from',
+            'the new subgraph to the rest of the original graph.',
+            'There is one bridge edge per component of the graph when separated',
+            'by the argument vertices.',
+            sep='\n'
+        )
 
     def do_reset(self, _inp):
         self.state = State()

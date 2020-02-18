@@ -69,6 +69,19 @@ class HyperGraph(object):
                 h.add_edge(e2, name=en)
         return h
 
+    def bridge_subg(self, U):
+        EC = [en for en, e in self.edge_dict.items() if
+              (e & U) != set()]
+        C = self.edge_subg(EC)
+
+        # for each component C_i of rest, compute a special edge Sp_i
+        for C_i in self.separate(U):
+            print(C_i)
+            Sp_i_parts = [(e - U) for e in C.E if (e & C_i.V) != set()]
+            Sp_i = set.union(*Sp_i_parts)
+            C.add_special_edge(Sp_i)
+        return C
+
     def edge_subg(self, edge_names):
         h = HyperGraph()
         for en in edge_names:
