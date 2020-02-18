@@ -1,5 +1,5 @@
 from cmd import Cmd
-from hyperfun.hypergraph import HyperGraph
+from hypergraph import HyperGraph
 from functools import reduce
 import sys
 import glob
@@ -124,7 +124,7 @@ class State:
         s += '\nActive: {}\n'.format(self.current_component)
         return s
 
-
+  
 class Prompt(Cmd):
     prompt = '福 '
     intro = 'Type ? for help'
@@ -142,6 +142,10 @@ class Prompt(Cmd):
             print('Loaded >{}<'.format(path))
         elif len(sys.argv) > 2:
             print('WARNING: Use at most one command line argument')
+
+    def _inp_list_split(inp):
+        inp = inp.replace(',', ' ')
+        return inp.split()
 
     def _complete_vertices(self, text, line, begidx, endidx):
         try:
@@ -185,7 +189,7 @@ class Prompt(Cmd):
     help_EOF = help_exit
 
     def do_grid(self, inp):
-        dim = inp.split()
+        dim = Prompt._inp_list_split(inp)
         if len(dim) != 2:
             print('WARNING: dimensions given wrong')
             return
@@ -251,7 +255,7 @@ class Prompt(Cmd):
         print('Save the active hypergraph in chosen format (hyperbench (default), sc): save <path> [<format>]')
 
     def do_separate(self, inp):
-        sep = inp.split()
+        sep = Prompt._inp_list_split(inp)
         new_comps = self.state.separate(sep, False)
         self._output_new_comps(new_comps, len(self.state.hg.E))
     complete_separate = _complete_vertices
@@ -260,7 +264,7 @@ class Prompt(Cmd):
         print('Separate by vertices: separate/sep <list of vertices> ')
 
     def do_special(self, inp):
-        sep = inp.split()
+        sep = Prompt._inp_list_split(inp)
         new_comps = self.state.separate(sep, True)
         self._output_new_comps(new_comps, old_edge_num=len(self.state.hg.E),
                                special=True)
@@ -309,7 +313,7 @@ class Prompt(Cmd):
         if self.state.hg is None:
             print('No active hypergraph!')
             return
-        hl_list = inp.split()
+        hl_list = Prompt._inp_list_split(inp)
         print(self.state.hg.fancy_repr(hl=hl_list))
     complete_findv = _complete_vertices
 
@@ -320,7 +324,7 @@ class Prompt(Cmd):
         if self.state.hg is None:
             print('No active hypergraph!')
             return
-        edge_names = inp.split()
+        edge_names = Prompt._inp_list_split(inp)
         edges = [self.state.hg.edge_dict[en] for en in edge_names]
         hl_list = reduce(lambda a, b: a | b, edges)  # union over all edges
         print(self.state.hg.fancy_repr(hl=hl_list))
@@ -333,7 +337,7 @@ class Prompt(Cmd):
         if self.state.hg is None:
             print('No active hypergraph')
             return
-        edge_names = inp.split()
+        edge_names = Prompt._inp_list_split(inp)
         try:
             name, hg = self.state.edge_subg(edge_names)
             print(name)
@@ -351,7 +355,7 @@ class Prompt(Cmd):
         )
 
     def do_join(self, inp):
-        jv = inp.split()
+        jv = Prompt._inp_list_split(inp)
         if len(jv) > 2:
             print('WARNING: takes exactly 2 attributes')
             return
@@ -377,7 +381,7 @@ class Prompt(Cmd):
         )
 
     def do_complement(self, inp):
-        U = set(inp.split())
+        U = set(Prompt._inp_list_split(inp))
         r = self.state.vertex_induced_subg(U, complement=True)
         self._output_new_comps([r])
 
